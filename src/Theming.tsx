@@ -125,9 +125,11 @@ type Theme = {
 
   wallpaper: string;
   radius: string;
+  globalAlpha: number;
+  globalBlur: number;
 };
 
-function mdToTheme(md: Scheme): Theme {
+function mdToTheme(md: Scheme, prevTheme?: Theme): Theme {
   return {
     background: argbToRGBColor(md.background),
     backgroundText: argbToRGBColor(md.onBackground),
@@ -157,17 +159,19 @@ function mdToTheme(md: Scheme): Theme {
     errorContainer: argbToRGBColor(md.errorContainer),
     errorContainerText: argbToRGBColor(md.onErrorContainer),
 
-    outline: argbToRGBColor(md.outline),
-    outlineVariant: argbToRGBColor(md.outlineVariant),
-
-    shadow: argbToRGBColor(md.shadow),
-    scrim: argbToRGBColor(md.scrim),
     inverseSurface: argbToRGBColor(md.inverseSurface),
     inverseOnSurface: argbToRGBColor(md.inverseOnSurface),
     inversePrimary: argbToRGBColor(md.inversePrimary),
 
-    wallpaper: "",
-    radius: "0.5rem",
+    outline: argbToRGBColor(md.outline),
+    outlineVariant: argbToRGBColor(md.outlineVariant),
+    shadow: argbToRGBColor(md.shadow),
+    scrim: argbToRGBColor(md.scrim),
+
+    wallpaper: prevTheme?.wallpaper ?? "",
+    radius: prevTheme?.radius ?? "0.5rem",
+    globalAlpha: prevTheme?.globalAlpha ?? 1,
+    globalBlur: prevTheme?.globalBlur ?? 0,
   };
 }
 
@@ -178,24 +182,25 @@ const colorCategories = [
   ["secondary", "secondaryText", "secondaryContainer", "secondaryContainerText"],
   ["tertiary", "tertiaryText", "tertiaryContainer", "tertiaryContainerText"],
   ["error", "errorText", "errorContainer", "errorContainerText"],
+  ["inverseSurface", "inverseOnSurface", "inversePrimary"],
   ["outline", "outlineVariant"],
-  ["shadow", "scrim", "inverseSurface", "inverseOnSurface", "inversePrimary"],
+  ["shadow", "scrim"],
 ] as const;
 
 const defaultMdColor = "#3f51b5";
 
 const styles = {
-  "material-light": mdToTheme(Scheme.light(argbFromHex(defaultMdColor))),
-  "material-dark": mdToTheme(Scheme.dark(argbFromHex(defaultMdColor))),
+  "material-you-light": mdToTheme(Scheme.light(argbFromHex(defaultMdColor))),
+  "material-you-dark": mdToTheme(Scheme.dark(argbFromHex(defaultMdColor))),
   advanced: undefined,
 } as const satisfies Record<string, Theme | undefined>;
 
 type Styles = keyof typeof styles;
 
 export default function Theming() {
-  const [style, setStyle] = useState<Styles>("material-light");
+  const [style, setStyle] = useState<Styles>("material-you-light");
   const [mdSourceColor, setMdSourceColor] = useState(hexToRGBColor(defaultMdColor));
-  const [theme, setTheme] = useState<Theme>(styles["material-light"]);
+  const [theme, setTheme] = useState<Theme>(styles["material-you-light"]);
 
   function applyTheme(newTheme?: Theme) {
     const currentTheme = newTheme ?? theme;
@@ -236,19 +241,21 @@ export default function Theming() {
     addColorStyle("--error-container", currentTheme.errorContainer);
     addColorStyle("--error-container-text", currentTheme.errorContainerText);
 
-    addColorStyle("--outline", currentTheme.outline);
-    addColorStyle("--outline-variant", currentTheme.outlineVariant);
-
-    addColorStyle("--shadow", currentTheme.shadow);
-    addColorStyle("--scrim", currentTheme.scrim);
     addColorStyle("--inverse-surface", currentTheme.inverseSurface);
     addColorStyle("--inverse-surface-text", currentTheme.inverseOnSurface);
     addColorStyle("--inverse-primary", currentTheme.inversePrimary);
+    
+    addColorStyle("--outline", currentTheme.outline);
+    addColorStyle("--outline-variant", currentTheme.outlineVariant);
+    addColorStyle("--shadow", currentTheme.shadow);
+    addColorStyle("--scrim", currentTheme.scrim);
 
     if (currentTheme.wallpaper) {
       addStyle("--wallpaper", `url(${currentTheme.wallpaper})`);
     }
-    addStyle("--radius", `${currentTheme.radius}`);
+    addStyle("--radius", currentTheme.radius);
+    addStyle("--bg-alpha", currentTheme.globalAlpha.toString());
+    addStyle("--bg-blur", `${currentTheme.globalBlur}px`);
 
     if (newTheme) {
       setTheme(newTheme);
@@ -260,21 +267,28 @@ export default function Theming() {
     const mdTheme = themeFromSourceColor(sourceColor);
 
     const scheme =
-      style === "material-dark" ? mdTheme.schemes.dark : mdTheme.schemes.light;
+      style === "material-you-dark" ? mdTheme.schemes.dark : mdTheme.schemes.light;
 
-    const newTheme = mdToTheme(scheme);
+    const newTheme = mdToTheme(scheme, theme);
 
     applyTheme(newTheme);
   }
 
+  function newStyle(name: Styles) {
+    setStyle(name);
+
+    // TODO: When I add new styles e.g. gruvbox, solaris, etc., I will need to
+    // apply the theme here.
+  }
+
   useEffect(() => {
-    if (style === "material-light" || style === "material-dark") {
+    if (style === "material-you-light" || style === "material-you-dark") {
       applyMarkdownTheme();
     }
   }, [mdSourceColor, style]);
 
   return (
-    <div className="text-foreground">
+    <div className="preset-background w-fit mx-auto rounded-lg p-8">
       <h1 className="text-4xl font-bold text-center">Theming</h1>
       <p className="text-lg text-center">
         This is a React app with Tailwind CSS.
@@ -283,9 +297,12 @@ export default function Theming() {
         <label className="flex flex-row gap-2 items-center">
           Style:
           <select
-            className="bg-primary-container text-primary-container-text"
+            className="preset-primary-container"
             value={style}
-            onChange={(e) => setStyle(e.target.value as Styles)}
+            onChange={(e) => {
+              const style = e.target.value as Styles;
+              newStyle(style);
+            }}
           >
             {Object.keys(styles).map((style) => (
               <option key={style} value={style}>
@@ -294,10 +311,10 @@ export default function Theming() {
             ))}
           </select>
         </label>
-        {(style === "material-dark" || style === "material-light") && (
+        {(style === "material-you-dark" || style === "material-you-light") && (
           <div>
             <label className="flex flex-row items-center gap-2">
-              Source color:{" "}
+              Source color:
               <ColorPicker
                 color={mdSourceColor}
                 onChange={(color) => setMdSourceColor(color.rgb)}
@@ -309,7 +326,7 @@ export default function Theming() {
         {style === "advanced" && (
           <div className="flex flex-col gap-4">
             {colorCategories.map((colors) => (
-              <div className="bg-surface outline outline-outline p-2 rounded-lg flex flex-row flex-wrap gap-4">
+              <div key={colors[0]} className="preset-surface p-2 rounded-lg flex flex-row flex-wrap gap-4">
                 {colors.map((colorName) => (
                   <label key={colorName} className="flex flex-row gap-2 items-center">
                     {capitalCase(colorName)}:
@@ -323,11 +340,11 @@ export default function Theming() {
                 ))}
               </div>
             ))}
-            <div className="bg-surface outline outline-outline p-2 rounded-lg flex flex-row flex-wrap gap-4">
+            <div className="preset-surface p-2 rounded-lg flex flex-row flex-wrap gap-4">
               <label className="flex flex-row gap-2 items-center">
-                Wallpaper:{" "}
+                Wallpaper:
                 <input
-                  className="bg-primary-container text-primary-container-text p-2 rounded-md"
+                  className="preset-primary-container p-2 rounded-md"
                   type="file"
                   onChange={(e) => {
                     const file = e.target.files?.[0];
@@ -345,13 +362,40 @@ export default function Theming() {
                 />
               </label>
               <label className="flex flex-row gap-2 items-center">
-                Radius:{" "}
+                Radius:
                 <input
-                  className="bg-primary-container text-primary-container-text p-2 rounded-md"
+                  className="preset-primary-container p-2 rounded-md"
                   type="text"
                   value={theme.radius}
                   onChange={(e) =>
                     applyTheme({ ...theme, radius: e.target.value })
+                  }
+                />
+              </label>
+            </div>
+            <div className="preset-surface p-2 rounded-lg flex flex-row flex-wrap gap-4">
+              <label className="flex flex-row gap-2 items-center">
+                Global alpha:
+                <input
+                  className="preset-primary-container p-2 rounded-md"
+                  type="number"
+                  min={0}
+                  max={1}
+                  step={0.1}
+                  value={theme.globalAlpha}
+                  onChange={(e) =>
+                    applyTheme({ ...theme, globalAlpha: +e.target.value })
+                  }
+                />
+              </label>
+              <label className="flex flex-row gap-2 items-center">
+                Global blur:
+                <input
+                  className="preset-primary-container p-2 rounded-md"
+                  type="number"
+                  value={theme.globalBlur}
+                  onChange={(e) =>
+                    applyTheme({ ...theme, globalBlur: +e.target.value })
                   }
                 />
               </label>
