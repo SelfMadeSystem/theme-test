@@ -6,6 +6,7 @@ import {
 } from "@material/material-color-utilities";
 import ColorPicker from "./ColorPicker";
 import { RGBColor } from "react-color";
+import { capitalCase } from "change-case";
 
 function addStyle(name: string, value: string) {
   document.documentElement.style.setProperty(name, value);
@@ -170,6 +171,17 @@ function mdToTheme(md: Scheme): Theme {
   };
 }
 
+const colorCategories = [
+  ["background", "backgroundText"],
+  ["surface", "surfaceText", "surfaceVariant", "surfaceVariantText"],
+  ["primary", "primaryText", "primaryContainer", "primaryContainerText"],
+  ["secondary", "secondaryText", "secondaryContainer", "secondaryContainerText"],
+  ["tertiary", "tertiaryText", "tertiaryContainer", "tertiaryContainerText"],
+  ["error", "errorText", "errorContainer", "errorContainerText"],
+  ["outline", "outlineVariant"],
+  ["shadow", "scrim", "inverseSurface", "inverseOnSurface", "inversePrimary"],
+] as const;
+
 const defaultMdColor = "#3f51b5";
 
 const styles = {
@@ -296,283 +308,21 @@ export default function Theming() {
         )}
         {style === "advanced" && (
           <div className="flex flex-col gap-4">
-            <div className="bg-surface outline outline-outline p-2 rounded-lg flex flex-row flex-wrap gap-4">
-              <label className="flex flex-row gap-2 items-center">
-                Background:{" "}
-                <ColorPicker
-                  color={theme.background}
-                  onChange={(color) =>
-                    applyTheme({ ...theme, background: color.rgb })
-                  }
-                />
-              </label>
-              <label className="flex flex-row gap-2 items-center">
-                Background text:{" "}
-                <ColorPicker
-                  color={theme.backgroundText}
-                  onChange={(color) =>
-                    applyTheme({ ...theme, backgroundText: color.rgb })
-                  }
-                />
-              </label>
-            </div>
-            <div className="bg-surface outline outline-outline p-2 rounded-lg flex flex-row flex-wrap gap-4">
-              <label className="flex flex-row gap-2 items-center">
-                Surface:{" "}
-                <ColorPicker
-                  color={theme.surface}
-                  onChange={(color) =>
-                    applyTheme({ ...theme, surface: color.rgb })
-                  }
-                />
-              </label>
-              <label className="flex flex-row gap-2 items-center">
-                Surface text:{" "}
-                <ColorPicker
-                  color={theme.surfaceText}
-                  onChange={(color) =>
-                    applyTheme({ ...theme, surfaceText: color.rgb })
-                  }
-                />
-              </label>
-              <label className="flex flex-row gap-2 items-center">
-                Surface variant:{" "}
-                <ColorPicker
-                  color={theme.surfaceVariant}
-                  onChange={(color) =>
-                    applyTheme({ ...theme, surfaceVariant: color.rgb })
-                  }
-                />
-              </label>
-              <label className="flex flex-row gap-2 items-center">
-                Surface variant text:{" "}
-                <ColorPicker
-                  color={theme.surfaceVariantText}
-                  onChange={(color) =>
-                    applyTheme({ ...theme, surfaceVariantText: color.rgb })
-                  }
-                />
-              </label>
-            </div>
-            <div className="bg-surface outline outline-outline p-2 rounded-lg flex flex-row flex-wrap gap-4">
-              <label className="flex flex-row gap-2 items-center">
-                Primary:{" "}
-                <ColorPicker
-                  color={theme.primary}
-                  onChange={(color) =>
-                    applyTheme({ ...theme, primary: color.rgb })
-                  }
-                />
-              </label>
-              <label className="flex flex-row gap-2 items-center">
-                Primary text:{" "}
-                <ColorPicker
-                  color={theme.primaryText}
-                  onChange={(color) =>
-                    applyTheme({ ...theme, primaryText: color.rgb })
-                  }
-                />
-              </label>
-              <label className="flex flex-row gap-2 items-center">
-                Primary container:{" "}
-                <ColorPicker
-                  color={theme.primaryContainer}
-                  onChange={(color) =>
-                    applyTheme({ ...theme, primaryContainer: color.rgb })
-                  }
-                />
-              </label>
-              <label className="flex flex-row gap-2 items-center">
-                Primary container text:{" "}
-                <ColorPicker
-                  color={theme.primaryContainerText}
-                  onChange={(color) =>
-                    applyTheme({ ...theme, primaryContainerText: color.rgb })
-                  }
-                />
-              </label>
-            </div>
-            <div className="bg-surface outline outline-outline p-2 rounded-lg flex flex-row flex-wrap gap-4">
-              <label className="flex flex-row gap-2 items-center">
-                Secondary:{" "}
-                <ColorPicker
-                  color={theme.secondary}
-                  onChange={(color) =>
-                    applyTheme({ ...theme, secondary: color.rgb })
-                  }
-                />
-              </label>
-              <label className="flex flex-row gap-2 items-center">
-                Secondary text:{" "}
-                <ColorPicker
-                  color={theme.secondaryText}
-                  onChange={(color) =>
-                    applyTheme({ ...theme, secondaryText: color.rgb })
-                  }
-                />
-              </label>
-              <label className="flex flex-row gap-2 items-center">
-                Secondary container:{" "}
-                <ColorPicker
-                  color={theme.secondaryContainer}
-                  onChange={(color) =>
-                    applyTheme({ ...theme, secondaryContainer: color.rgb })
-                  }
-                />
-              </label>
-              <label className="flex flex-row gap-2 items-center">
-                Secondary container text:{" "}
-                <ColorPicker
-                  color={theme.secondaryContainerText}
-                  onChange={(color) =>
-                    applyTheme({ ...theme, secondaryContainerText: color.rgb })
-                  }
-                />
-              </label>
-            </div>
-            <div className="bg-surface outline outline-outline p-2 rounded-lg flex flex-row flex-wrap gap-4">
-              <label className="flex flex-row gap-2 items-center">
-                Tertiary:{" "}
-                <ColorPicker
-                  color={theme.tertiary}
-                  onChange={(color) =>
-                    applyTheme({ ...theme, tertiary: color.rgb })
-                  }
-                />
-              </label>
-              <label className="flex flex-row gap-2 items-center">
-                Tertiary text:{" "}
-                <ColorPicker
-                  color={theme.tertiaryText}
-                  onChange={(color) =>
-                    applyTheme({ ...theme, tertiaryText: color.rgb })
-                  }
-                />
-              </label>
-              <label className="flex flex-row gap-2 items-center">
-                Tertiary container:{" "}
-                <ColorPicker
-                  color={theme.tertiaryContainer}
-                  onChange={(color) =>
-                    applyTheme({ ...theme, tertiaryContainer: color.rgb })
-                  }
-                />
-              </label>
-              <label className="flex flex-row gap-2 items-center">
-                Tertiary container text:{" "}
-                <ColorPicker
-                  color={theme.tertiaryContainerText}
-                  onChange={(color) =>
-                    applyTheme({ ...theme, tertiaryContainerText: color.rgb })
-                  }
-                />
-              </label>
-            </div>
-            <div className="bg-surface outline outline-outline p-2 rounded-lg flex flex-row flex-wrap gap-4">
-              <label className="flex flex-row gap-2 items-center">
-                Error:{" "}
-                <ColorPicker
-                  color={theme.error}
-                  onChange={(color) =>
-                    applyTheme({ ...theme, error: color.rgb })
-                  }
-                />
-              </label>
-              <label className="flex flex-row gap-2 items-center">
-                Error text:{" "}
-                <ColorPicker
-                  color={theme.errorText}
-                  onChange={(color) =>
-                    applyTheme({ ...theme, errorText: color.rgb })
-                  }
-                />
-              </label>
-              <label className="flex flex-row gap-2 items-center">
-                Error container:{" "}
-                <ColorPicker
-                  color={theme.errorContainer}
-                  onChange={(color) =>
-                    applyTheme({ ...theme, errorContainer: color.rgb })
-                  }
-                />
-              </label>
-              <label className="flex flex-row gap-2 items-center">
-                Error container text:{" "}
-                <ColorPicker
-                  color={theme.errorContainerText}
-                  onChange={(color) =>
-                    applyTheme({ ...theme, errorContainerText: color.rgb })
-                  }
-                />
-              </label>
-            </div>
-            <div className="bg-surface outline outline-outline p-2 rounded-lg flex flex-row flex-wrap gap-4">
-              <label className="flex flex-row gap-2 items-center">
-                Outline:{" "}
-                <ColorPicker
-                  color={theme.outline}
-                  onChange={(color) =>
-                    applyTheme({ ...theme, outline: color.rgb })
-                  }
-                />
-              </label>
-              <label className="flex flex-row gap-2 items-center">
-                Outline variant:{" "}
-                <ColorPicker
-                  color={theme.outlineVariant}
-                  onChange={(color) =>
-                    applyTheme({ ...theme, outlineVariant: color.rgb })
-                  }
-                />
-              </label>
-            </div>
-            <div className="bg-surface outline outline-outline p-2 rounded-lg flex flex-row flex-wrap gap-4">
-              <label className="flex flex-row gap-2 items-center">
-                Shadow:{" "}
-                <ColorPicker
-                  color={theme.shadow}
-                  onChange={(color) =>
-                    applyTheme({ ...theme, shadow: color.rgb })
-                  }
-                />
-              </label>
-              <label className="flex flex-row gap-2 items-center">
-                Scrim:{" "}
-                <ColorPicker
-                  color={theme.scrim}
-                  onChange={(color) =>
-                    applyTheme({ ...theme, scrim: color.rgb })
-                  }
-                />
-              </label>
-              <label className="flex flex-row gap-2 items-center">
-                Inverse surface:{" "}
-                <ColorPicker
-                  color={theme.inverseSurface}
-                  onChange={(color) =>
-                    applyTheme({ ...theme, inverseSurface: color.rgb })
-                  }
-                />
-              </label>
-              <label className="flex flex-row gap-2 items-center">
-                Inverse surface text:{" "}
-                <ColorPicker
-                  color={theme.inverseOnSurface}
-                  onChange={(color) =>
-                    applyTheme({ ...theme, inverseOnSurface: color.rgb })
-                  }
-                />
-              </label>
-              <label className="flex flex-row gap-2 items-center">
-                Inverse primary:{" "}
-                <ColorPicker
-                  color={theme.inversePrimary}
-                  onChange={(color) =>
-                    applyTheme({ ...theme, inversePrimary: color.rgb })
-                  }
-                />
-              </label>
-            </div>
+            {colorCategories.map((colors) => (
+              <div className="bg-surface outline outline-outline p-2 rounded-lg flex flex-row flex-wrap gap-4">
+                {colors.map((colorName) => (
+                  <label key={colorName} className="flex flex-row gap-2 items-center">
+                    {capitalCase(colorName)}:
+                    <ColorPicker
+                      color={theme[colorName]}
+                      onChange={(color) =>
+                        applyTheme({ ...theme, [colorName]: color.rgb })
+                      }
+                    />
+                  </label>
+                ))}
+              </div>
+            ))}
             <div className="bg-surface outline outline-outline p-2 rounded-lg flex flex-row flex-wrap gap-4">
               <label className="flex flex-row gap-2 items-center">
                 Wallpaper:{" "}
