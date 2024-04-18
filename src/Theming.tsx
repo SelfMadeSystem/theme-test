@@ -84,6 +84,33 @@ function hexToRGBColor(hex: string): RGBColor {
 }
 
 /**
+ * Gets the mime type of a base64 image.
+ */
+function getMimeType(base64: string): string {
+  return base64.match(/^data:(.*?);base64,/)?.[1] ?? "";
+}
+
+/**
+ * Strips the base64 prefix from a base64 image.
+ */
+function stripBase64Prefix(base64: string): string {
+  return base64.replace(/^data:(.*?);base64,/, "");
+}
+
+/**
+ * Converts base64 image to an array buffer.
+ */
+function base64ToArrayBuffer(base64: string): ArrayBuffer {
+  const binaryString = atob(base64);
+  const length = binaryString.length;
+  const bytes = new Uint8Array(length);
+  for (let i = 0; i < length; i++) {
+    bytes[i] = binaryString.charCodeAt(i);
+  }
+  return bytes.buffer;
+}
+
+/**
  * The {@link Theme} object contains all the colors used in the app.
  *
  * All in #rrggbb format.
@@ -257,7 +284,9 @@ export default function Theming() {
     addColorStyle("--scrim", currentTheme.scrim);
 
     if (currentTheme.wallpaper) {
-      addStyle("--wallpaper", `url(${currentTheme.wallpaper})`);
+      addStyle("--wallpaper", `url(${currentTheme.wallpaper.url})`);
+    } else {
+      addStyle("--wallpaper", "none");
     }
     addStyle("--radius", currentTheme.radius);
     addStyle("--bg-alpha", currentTheme.globalAlpha.toString());
@@ -368,6 +397,19 @@ export default function Theming() {
                   }}
                 />
               </label>
+              <button
+                className="preset-primary p-2 rounded-md"
+                onClick={() => {
+                  if (theme.wallpaper) {
+                    URL.revokeObjectURL(theme.wallpaper.url);
+                    applyTheme({ ...theme, wallpaper: undefined });
+                  }
+                }}
+              >
+                Remove wallpaper
+              </button>
+            </div>
+            <div className="preset-surface p-2 rounded-lg flex flex-row flex-wrap gap-4">
               <label className="flex flex-row gap-2 items-center">
                 Radius:
                 <input
@@ -409,6 +451,51 @@ export default function Theming() {
             </div>
           </div>
         )}
+        <div className="preset-surface p-2 rounded-lg flex flex-row flex-wrap gap-4">
+          <button
+            className="preset-primary p-2 rounded-md"
+            onClick={() => {
+              navigator.clipboard.writeText(
+                JSON.stringify(
+                  {
+                    ...theme,
+                    wallpaper: theme.wallpaper?.base64,
+                  },
+                  null,
+                  2
+                )
+              );
+            }}
+          >
+            Copy theme
+          </button>
+          <button
+            className="preset-primary p-2 rounded-md"
+            onClick={() => {
+              navigator.clipboard.readText().then((text) => {
+                if (theme.wallpaper) {
+                  URL.revokeObjectURL(theme.wallpaper.url);
+                }
+                const newTheme = JSON.parse(text);
+                if (newTheme.wallpaper) {
+                  const base64ImageContent = newTheme.wallpaper;
+                  const mimeType = getMimeType(base64ImageContent);
+                  const strippedBase64 = stripBase64Prefix(base64ImageContent);
+                  const blob = new Blob([base64ToArrayBuffer(strippedBase64)], {
+                    type: mimeType,
+                  });
+                  newTheme.wallpaper = {
+                    base64: newTheme.wallpaper,
+                    url: URL.createObjectURL(blob),
+                  };
+                }
+                applyTheme(newTheme);
+              });
+            }}
+          >
+            Paste theme
+          </button>
+        </div>
       </div>
     </div>
   );
