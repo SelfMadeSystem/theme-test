@@ -9,6 +9,9 @@ import { RGBColor } from "react-color";
 import { capitalCase } from "change-case";
 
 function addStyle(name: string, value: string) {
+  if (name === '--wallpaper') {
+    console.log("hi", value);
+  }
   document.documentElement.style.setProperty(name, value);
 }
 
@@ -123,7 +126,10 @@ type Theme = {
   inverseOnSurface: RGBColor;
   inversePrimary: RGBColor;
 
-  wallpaper: string;
+  wallpaper?: {
+    base64: string;
+    url: string;
+  }
   radius: string;
   globalAlpha: number;
   globalBlur: number;
@@ -168,7 +174,7 @@ function mdToTheme(md: Scheme, prevTheme?: Theme): Theme {
     shadow: argbToRGBColor(md.shadow),
     scrim: argbToRGBColor(md.scrim),
 
-    wallpaper: prevTheme?.wallpaper ?? "",
+    wallpaper: prevTheme?.wallpaper,
     radius: prevTheme?.radius ?? "0.5rem",
     globalAlpha: prevTheme?.globalAlpha ?? 1,
     globalBlur: prevTheme?.globalBlur ?? 0,
@@ -349,12 +355,13 @@ export default function Theming() {
                   onChange={(e) => {
                     const file = e.target.files?.[0];
                     if (file) {
+                      if (theme.wallpaper) {
+                        URL.revokeObjectURL(theme.wallpaper.url);
+                      }
+                      const url = URL.createObjectURL(file);
                       const reader = new FileReader();
-                      reader.onload = (e) => {
-                        const result = e.target?.result;
-                        if (typeof result === "string") {
-                          applyTheme({ ...theme, wallpaper: result });
-                        }
+                      reader.onload = () => {
+                        applyTheme({ ...theme, wallpaper: { base64: reader.result as string, url } });
                       };
                       reader.readAsDataURL(file);
                     }
