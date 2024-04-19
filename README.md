@@ -18,8 +18,8 @@ It uses a combination of CSS variables, JavaScript, and TailwindCSS to allow for
 - [x] Rounding
 - [x] Wallpaper
 - [x] Background opacity (per background color)
-  - [ ] Site-wide opacity
-- [ ] Background blur
+  - [x] Site-wide opacity
+- [x] Background blur
 - [ ] Shadows
 - [ ] Fonts
 - [ ] Spacing
