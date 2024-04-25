@@ -26,6 +26,12 @@ export default function Theming() {
   const [mdSourceColor, setMdSourceColor] = useState(
     hexToRGBColor(defaultMdColor)
   );
+  const [radius, setRadius] = useState(theme.radius);
+  const [globalAlpha, setGlobalAlpha] = useState(theme.globalAlpha);
+  const [globalBlur, setGlobalBlur] = useState(theme.globalBlur);
+  const [transitionDuration, setTransitionDuration] = useState(
+    theme.transitionDuration
+  );
 
   function applyMarkdownTheme() {
     const scheme = new SchemeContent(
@@ -214,9 +220,11 @@ export default function Theming() {
                 <input
                   className="preset-primary-container preset-primary-container-interactive p-2 rounded-md"
                   type="text"
-                  value={theme.radius}
+                  value={radius}
                   onChange={(e) => {
-                    theme.radius = e.target.value;
+                    const val = e.target.value;
+                    setRadius(val);
+                    theme.radius = val;
                     applyTheme();
                   }}
                 />
@@ -231,9 +239,11 @@ export default function Theming() {
                   min={0}
                   max={1}
                   step={0.1}
-                  value={theme.globalAlpha}
+                  value={globalAlpha}
                   onChange={(e) => {
-                    theme.globalAlpha = +e.target.value;
+                    const val = +e.target.value;
+                    setGlobalAlpha(val);
+                    theme.globalAlpha = val;
                     applyTheme();
                   }}
                 />
@@ -243,9 +253,25 @@ export default function Theming() {
                 <input
                   className="preset-primary-container preset-primary-container-interactive p-2 rounded-md"
                   type="number"
-                  value={theme.globalBlur}
+                  value={globalBlur}
                   onChange={(e) => {
-                    theme.globalBlur = +e.target.value;
+                    const val = +e.target.value;
+                    setGlobalBlur(val);
+                    theme.globalBlur = val;
+                    applyTheme();
+                  }}
+                />
+              </label>
+              <label className="flex flex-row gap-2 items-center">
+                Transition duration:
+                <input
+                  className="preset-primary-container preset-primary-container-interactive p-2 rounded-md"
+                  type="number"
+                  value={transitionDuration}
+                  onChange={(e) => {
+                    const val = +e.target.value;
+                    setTransitionDuration(val);
+                    theme.transitionDuration = val;
                     applyTheme();
                   }}
                 />

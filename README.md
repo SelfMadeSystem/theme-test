@@ -20,10 +20,10 @@ It uses a combination of CSS variables, JavaScript, and TailwindCSS to allow for
 - [x] Background opacity (per background color)
   - [x] Site-wide opacity
 - [x] Background blur
+- [x] Transitions
 - [ ] Shadows
 - [ ] Fonts
 - [ ] Spacing
-- [ ] Animations
 
 ## Usage
 

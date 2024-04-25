@@ -123,6 +123,12 @@ export default {
     plugin(function ({ addUtilities, theme }) {
       const newUtilities = {};
 
+      newUtilities[`.preset-transition`] = {
+        transitionProperty:
+          "color, background-color, border-color, text-decoration-color, fill, stroke",
+        transitionDuration: "var(--transition-duration, 150ms)",
+      };
+
       function addUtility(name: string, interactive: boolean) {
         const dotName = name.replace(/-/g, ".");
         newUtilities[`.preset-${name}`] = {
@@ -130,9 +136,10 @@ export default {
           color: theme(`colors.${dotName}.text`),
           backdropFilter: `blur(calc(var(--${name}-blur, 0px) + var(--bg-blur, 0px)))`,
         };
-        // TODO: Add radius
 
         if (interactive) {
+          newUtilities[`.preset-${name}-interactive`] =
+            newUtilities[".preset-transition"];
           newUtilities[`.preset-${name}-interactive:hover`] = {
             backgroundColor: theme(`colors.${dotName}.hover.DEFAULT`),
             color: theme(`colors.${dotName}.hover.text`),

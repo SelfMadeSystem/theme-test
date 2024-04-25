@@ -48,7 +48,8 @@ export default function ColorPicker({
             border-primary-container
             hover:border-primary-container-hover
             active:border-primary-container-active
-            border-[0.5rem]"
+            border-[0.5rem]
+            preset-transition"
         onClick={() => setOpen(!open)}
       >
         <div

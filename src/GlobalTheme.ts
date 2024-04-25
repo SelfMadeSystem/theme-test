@@ -45,6 +45,7 @@ export type Theme = {
   radius: string;
   globalAlpha: number;
   globalBlur: number;
+  transitionDuration: number;
 } & TwTheme<RGBColor, string>;
 
 /**
@@ -122,6 +123,7 @@ export function mdToTheme(md: DynamicScheme, prevTheme?: Theme): Theme {
     radius: prevTheme?.radius ?? "0.5rem",
     globalAlpha: prevTheme?.globalAlpha ?? 1,
     globalBlur: prevTheme?.globalBlur ?? 0,
+    transitionDuration: prevTheme?.transitionDuration ?? 150,
   };
 }
 
@@ -182,6 +184,7 @@ export function applyTheme() {
   addStyle("--radius", theme.radius);
   addStyle("--bg-alpha", theme.globalAlpha.toString());
   addStyle("--bg-blur", `${theme.globalBlur}px`);
+  addStyle("--transition-duration", `${theme.transitionDuration}ms`);
 }
 
 /**
