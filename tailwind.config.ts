@@ -133,17 +133,15 @@ export default {
         // TODO: Add radius
 
         if (interactive) {
-          newUtilities[`.preset-${name}-interactive`] = {
-            "&:hover": {
-              backgroundColor: theme(`colors.${dotName}.hover`),
-              color: theme(`colors.${dotName}.hover.text`),
-              backdropFilter: `blur(calc(var(--${name}-hover-blur, var(--${name}-blur, 0px)) + var(--bg-blur, 0px)))`,
-            },
-            "&:active": {
-              backgroundColor: theme(`colors.${dotName}.active`),
-              color: theme(`colors.${dotName}.active.text`),
-              backdropFilter: `blur(calc(var(--${name}-active-blur, var(--${name}-blur, 0px)) + var(--bg-blur, 0px)))`,
-            },
+          newUtilities[`.preset-${name}-interactive:hover`] = {
+            backgroundColor: theme(`colors.${dotName}.hover.DEFAULT`),
+            color: theme(`colors.${dotName}.hover.text`),
+            backdropFilter: `blur(calc(var(--${name}-hover-blur, var(--${name}-blur, 0px)) + var(--bg-blur, 0px)))`,
+          };
+          newUtilities[`.preset-${name}-interactive:active`] = {
+            backgroundColor: theme(`colors.${dotName}.active.DEFAULT`),
+            color: theme(`colors.${dotName}.active.text`),
+            backdropFilter: `blur(calc(var(--${name}-active-blur, var(--${name}-blur, 0px)) + var(--bg-blur, 0px)))`,
           };
         }
       }

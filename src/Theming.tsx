@@ -229,58 +229,82 @@ const styles = {
 
 type Styles = keyof typeof styles;
 
+// TODO: Split this file into probably like 3 files kuz it's doing too much
+// TODO: Split this file into probably like 3 files kuz it's doing too much
+// TODO: Split this file into probably like 3 files kuz it's doing too much
+// TODO: Split this file into probably like 3 files kuz it's doing too much
+// TODO: Split this file into probably like 3 files kuz it's doing too much
+// TODO: Split this file into probably like 3 files kuz it's doing too much
+// TODO: Split this file into probably like 3 files kuz it's doing too much
+// TODO: Split this file into probably like 3 files kuz it's doing too much
+// TODO: Split this file into probably like 3 files kuz it's doing too much
+// TODO: Split this file into probably like 3 files kuz it's doing too much
+// TODO: Split this file into probably like 3 files kuz it's doing too much
+// TODO: Split this file into probably like 3 files kuz it's doing too much
+// TODO: Split this file into probably like 3 files kuz it's doing too much
+
+const theme = styles["material-you-light"];
+
+function applyTheme() {
+  function addFullStyle(name: string, comp: AComponent) {
+    addColorStyle(`--${name}`, comp.bg);
+    addColorStyle(`--${name}-text`, comp.text);
+
+    if ("hover" in comp && "active" in comp) {
+      addColorStyle(`--${name}-hover`, comp.hover.bg);
+      addColorStyle(`--${name}-hover-text`, comp.hover.text);
+      addColorStyle(`--${name}-active`, comp.active.bg);
+      addColorStyle(`--${name}-active-text`, comp.active.text);
+    }
+
+    // TODO: Add blur and radius
+  }
+
+  for (const [name, entry] of themeComponentEntries) {
+    const currentEntry = theme[name];
+    addFullStyle(name, currentEntry);
+
+    if (entry.length > 1) {
+      const subcomponents = entry.slice(1) as SliceFirst<typeof entry>;
+      for (const subcomponent of subcomponents) {
+        const currentSubcomponent = currentEntry[
+          subcomponent as keyof typeof currentEntry
+        ] as unknown as AComponent; // TypeScript is a bit confused here
+        addFullStyle(`${name}-${subcomponent}`, currentSubcomponent);
+      }
+    }
+  }
+
+  if (theme.wallpaper) {
+    addStyle("--wallpaper", `url(${theme.wallpaper.url})`);
+  } else {
+    addStyle("--wallpaper", "none");
+  }
+  addStyle("--radius", theme.radius);
+  addStyle("--bg-alpha", theme.globalAlpha.toString());
+  addStyle("--bg-blur", `${theme.globalBlur}px`);
+}
+
+function recursivelyApply<T>(old: T, cur: T) {
+  for (const key in cur) {
+    if (typeof cur[key] === "object") {
+      recursivelyApply(old[key], cur[key]);
+    } else {
+      old[key] = cur[key];
+    }
+  }
+}
+
+function applyNewTheme(newTheme: Theme) {
+  recursivelyApply(theme, newTheme);
+  applyTheme();
+}
+
 export default function Theming() {
   const [style, setStyle] = useState<Styles>("material-you-light");
   const [mdSourceColor, setMdSourceColor] = useState(
     hexToRGBColor(defaultMdColor)
   );
-  const [theme, setTheme] = useState<Theme>(styles["material-you-light"]);
-
-  function applyTheme(newTheme?: Theme) {
-    const currentTheme = newTheme ?? theme;
-
-    function addFullStyle(name: string, comp: AComponent) {
-      addColorStyle(`--${name}`, comp.bg);
-      addColorStyle(`--${name}-text`, comp.text);
-
-      if ("hover" in comp && "active" in comp) {
-        addColorStyle(`--${name}-hover`, comp.hover.bg);
-        addColorStyle(`--${name}-hover-text`, comp.hover.text);
-        addColorStyle(`--${name}-active`, comp.active.bg);
-        addColorStyle(`--${name}-active-text`, comp.active.text);
-      }
-
-      // TODO: Add blur and radius
-    }
-
-    for (const [name, entry] of themeComponentEntries) {
-      const currentEntry = currentTheme[name];
-      addFullStyle(name, currentEntry);
-
-      if (entry.length > 1) {
-        const subcomponents = entry.slice(1) as SliceFirst<typeof entry>;
-        for (const subcomponent of subcomponents) {
-          const currentSubcomponent = currentEntry[
-            subcomponent as keyof typeof currentEntry
-          ] as unknown as AComponent; // TypeScript is a bit confused here
-          addFullStyle(`${name}-${subcomponent}`, currentSubcomponent);
-        }
-      }
-    }
-
-    if (currentTheme.wallpaper) {
-      addStyle("--wallpaper", `url(${currentTheme.wallpaper.url})`);
-    } else {
-      addStyle("--wallpaper", "none");
-    }
-    addStyle("--radius", currentTheme.radius);
-    addStyle("--bg-alpha", currentTheme.globalAlpha.toString());
-    addStyle("--bg-blur", `${currentTheme.globalBlur}px`);
-
-    if (newTheme) {
-      setTheme(newTheme);
-    }
-  }
 
   function applyMarkdownTheme() {
     const scheme = new SchemeContent(
@@ -289,9 +313,7 @@ export default function Theming() {
       0
     );
 
-    const newTheme = mdToTheme(scheme, theme);
-
-    applyTheme(newTheme);
+    applyNewTheme(mdToTheme(scheme, theme));
   }
 
   function newStyle(name: Styles) {
@@ -316,6 +338,8 @@ export default function Theming() {
     name: string;
     component: AComponent;
   }) {
+    const [bg, setBg] = useState(component.bg);
+    const [text, setText] = useState(component.text);
     return (
       <div className="preset-surface p-2 rounded-lg flex flex-row flex-wrap gap-4">
         <details className="w-full">
@@ -325,31 +349,23 @@ export default function Theming() {
             <div className="flex flex-row items-center gap-4">
               <span>Background</span>
               <ColorPicker
-                color={component.bg}
-                onChange={(color) =>
-                  applyTheme({
-                    ...theme,
-                    [name]: {
-                      ...component,
-                      bg: color.rgb,
-                    },
-                  })
-                }
+                color={bg}
+                onChange={(color) => {
+                  component.bg = color.rgb;
+                  setBg(color.rgb);
+                  applyTheme();
+                }}
               />
             </div>
             <div className="flex flex-row items-center gap-4">
               <span>Text</span>
               <ColorPicker
-                color={component.text}
-                onChange={(color) =>
-                  applyTheme({
-                    ...theme,
-                    [name]: {
-                      ...component,
-                      text: color.rgb,
-                    },
-                  })
-                }
+                color={text}
+                onChange={(color) => {
+                  component.text = color.rgb;
+                  setText(color.rgb);
+                  applyTheme();
+                }}
               />
             </div>
             {(() => {
@@ -447,10 +463,11 @@ export default function Theming() {
                       const url = URL.createObjectURL(file);
                       const reader = new FileReader();
                       reader.onload = () => {
-                        applyTheme({
-                          ...theme,
-                          wallpaper: { base64: reader.result as string, url },
-                        });
+                        theme.wallpaper = {
+                          base64: reader.result as string,
+                          url,
+                        };
+                        applyTheme();
                       };
                       reader.readAsDataURL(file);
                     }
@@ -462,7 +479,8 @@ export default function Theming() {
                 onClick={() => {
                   if (theme.wallpaper) {
                     URL.revokeObjectURL(theme.wallpaper.url);
-                    applyTheme({ ...theme, wallpaper: undefined });
+                    theme.wallpaper = undefined;
+                    applyTheme();
                   }
                 }}
               >
@@ -476,9 +494,10 @@ export default function Theming() {
                   className="preset-primary-container preset-primary-container-interactive p-2 rounded-md"
                   type="text"
                   value={theme.radius}
-                  onChange={(e) =>
-                    applyTheme({ ...theme, radius: e.target.value })
-                  }
+                  onChange={(e) => {
+                    theme.radius = e.target.value;
+                    applyTheme();
+                  }}
                 />
               </label>
             </div>
@@ -492,9 +511,10 @@ export default function Theming() {
                   max={1}
                   step={0.1}
                   value={theme.globalAlpha}
-                  onChange={(e) =>
-                    applyTheme({ ...theme, globalAlpha: +e.target.value })
-                  }
+                  onChange={(e) => {
+                    theme.globalAlpha = +e.target.value;
+                    applyTheme();
+                  }}
                 />
               </label>
               <label className="flex flex-row gap-2 items-center">
@@ -503,9 +523,10 @@ export default function Theming() {
                   className="preset-primary-container preset-primary-container-interactive p-2 rounded-md"
                   type="number"
                   value={theme.globalBlur}
-                  onChange={(e) =>
-                    applyTheme({ ...theme, globalBlur: +e.target.value })
-                  }
+                  onChange={(e) => {
+                    theme.globalBlur = +e.target.value;
+                    applyTheme();
+                  }}
                 />
               </label>
             </div>
@@ -549,7 +570,7 @@ export default function Theming() {
                     url: URL.createObjectURL(blob),
                   };
                 }
-                applyTheme(newTheme);
+                applyNewTheme(newTheme);
               });
             }}
           >
