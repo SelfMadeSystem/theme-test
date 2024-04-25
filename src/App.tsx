@@ -22,6 +22,7 @@ export default function App() {
         <Example className='preset-background' styleName="default"/>
         <Example className='preset-surface' styleName="surface"/>
         <Example className='preset-surface-variant' styleName="surface variant"/>
+        <Example className='preset-surface-inverse' styleName="surface inverse"/>
         <Example className='preset-primary' styleName="primary"/>
         <Example className='preset-primary-container' styleName="primary container"/>
         <Example className='preset-secondary' styleName="secondary"/>
@@ -30,7 +31,6 @@ export default function App() {
         <Example className='preset-tertiary-container' styleName="tertiary container"/>
         <Example className='preset-error' styleName="error"/>
         <Example className='preset-error-container' styleName="error container"/>
-        <Example className='preset-inverse-surface' styleName="inverse surface"/>
       </div>
     </div>
   );

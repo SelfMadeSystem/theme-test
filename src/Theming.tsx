@@ -1,15 +1,29 @@
 import { useEffect, useState } from "react";
 import {
   argbFromHex,
-  themeFromSourceColor,
-  Scheme,
+  DynamicScheme,
+  TonalPalette,
+  SchemeContent,
+  Hct,
 } from "@material/material-color-utilities";
 import ColorPicker from "./ColorPicker";
 import { RGBColor } from "react-color";
 import { capitalCase } from "change-case";
+import {
+  InteractiveComponent,
+  SimpleComponent,
+  SliceFirst,
+  themeComponentEntries,
+  type Theme as TwTheme,
+} from "./theme";
+
+type ASComponent = SimpleComponent<RGBColor, string>;
+type AIComponent = InteractiveComponent<RGBColor, string>;
+
+type AComponent = ASComponent | AIComponent;
 
 function addStyle(name: string, value: string) {
-  if (name === '--wallpaper') {
+  if (name === "--wallpaper") {
     console.log("hi", value);
   }
   document.documentElement.style.setProperty(name, value);
@@ -21,6 +35,13 @@ function addColorStyle(name: string, color: RGBColor) {
   if (color.a !== 255) {
     addStyle(`${name}-alpha`, `${color.a}`);
   }
+}
+
+/**
+ * Converts an RGBColor to HCT.
+ */
+function rgbColorToHct(color: RGBColor): Hct {
+  return Hct.fromInt(rgbColorToArgb(color));
 }
 
 /**
@@ -116,90 +137,79 @@ function base64ToArrayBuffer(base64: string): ArrayBuffer {
  * All in #rrggbb format.
  */
 type Theme = {
-  background: RGBColor;
-  backgroundText: RGBColor;
-
-  surface: RGBColor;
-  surfaceText: RGBColor;
-  surfaceVariant: RGBColor;
-  surfaceVariantText: RGBColor;
-
-  primary: RGBColor;
-  primaryText: RGBColor;
-  primaryContainer: RGBColor;
-  primaryContainerText: RGBColor;
-
-  secondary: RGBColor;
-  secondaryText: RGBColor;
-  secondaryContainer: RGBColor;
-  secondaryContainerText: RGBColor;
-
-  tertiary: RGBColor;
-  tertiaryText: RGBColor;
-  tertiaryContainer: RGBColor;
-  tertiaryContainerText: RGBColor;
-
-  error: RGBColor;
-  errorText: RGBColor;
-  errorContainer: RGBColor;
-  errorContainerText: RGBColor;
-
-  outline: RGBColor;
-  outlineVariant: RGBColor;
-
-  shadow: RGBColor;
-  scrim: RGBColor;
-  inverseSurface: RGBColor;
-  inverseOnSurface: RGBColor;
-  inversePrimary: RGBColor;
-
   wallpaper?: {
     base64: string;
     url: string;
-  }
+  };
   radius: string;
   globalAlpha: number;
   globalBlur: number;
-};
+} & TwTheme<RGBColor, string>;
 
-function mdToTheme(md: Scheme, prevTheme?: Theme): Theme {
+function mdToTheme(md: DynamicScheme, prevTheme?: Theme): Theme {
+  function tone(palette: TonalPalette, tone: number) {
+    if (tone < 0 || tone > 100) {
+      throw new Error("Tone must be between 0 and 100");
+    }
+    if (md.isDark) {
+      tone = 100 - tone;
+    }
+    return argbToRGBColor(palette.tone(tone));
+  }
+
+  function containerEtc(palette: TonalPalette) {
+    return {
+      bg: tone(palette, 80),
+      text: tone(palette, 20),
+      active: {
+        bg: tone(palette, 99),
+        text: tone(palette, 20),
+      },
+      hover: {
+        bg: tone(palette, 90),
+        text: tone(palette, 20),
+      },
+
+      container: {
+        bg: tone(palette, 30),
+        text: tone(palette, 90),
+        active: {
+          bg: tone(palette, 20),
+          text: tone(palette, 90),
+        },
+        hover: {
+          bg: tone(palette, 35),
+          text: tone(palette, 90),
+        },
+      },
+    };
+  }
+
   return {
-    background: argbToRGBColor(md.background),
-    backgroundText: argbToRGBColor(md.onBackground),
+    background: {
+      bg: tone(md.neutralPalette, 90),
+      text: tone(md.neutralPalette, 10),
+    },
 
-    surface: argbToRGBColor(md.surface),
-    surfaceText: argbToRGBColor(md.onSurface),
-    surfaceVariant: argbToRGBColor(md.surfaceVariant),
-    surfaceVariantText: argbToRGBColor(md.onSurfaceVariant),
+    surface: {
+      bg: tone(md.neutralPalette, 90),
+      text: tone(md.neutralPalette, 10),
 
-    primary: argbToRGBColor(md.primary),
-    primaryText: argbToRGBColor(md.onPrimary),
-    primaryContainer: argbToRGBColor(md.primaryContainer),
-    primaryContainerText: argbToRGBColor(md.onPrimaryContainer),
+      variant: {
+        bg: tone(md.neutralPalette, 90),
+        text: tone(md.neutralPalette, 20),
+      },
 
-    secondary: argbToRGBColor(md.secondary),
-    secondaryText: argbToRGBColor(md.onSecondary),
-    secondaryContainer: argbToRGBColor(md.secondaryContainer),
-    secondaryContainerText: argbToRGBColor(md.onSecondaryContainer),
+      inverse: {
+        bg: tone(md.neutralPalette, 30),
+        text: tone(md.neutralPalette, 80),
+      },
+    },
 
-    tertiary: argbToRGBColor(md.tertiary),
-    tertiaryText: argbToRGBColor(md.onTertiary),
-    tertiaryContainer: argbToRGBColor(md.tertiaryContainer),
-    tertiaryContainerText: argbToRGBColor(md.onTertiaryContainer),
-
-    error: argbToRGBColor(md.error),
-    errorText: argbToRGBColor(md.onError),
-    errorContainer: argbToRGBColor(md.errorContainer),
-    errorContainerText: argbToRGBColor(md.onErrorContainer),
-
-    inverseSurface: argbToRGBColor(md.inverseSurface),
-    inverseOnSurface: argbToRGBColor(md.inverseOnSurface),
-    inversePrimary: argbToRGBColor(md.inversePrimary),
-
-    outline: argbToRGBColor(md.outline),
-    outlineVariant: argbToRGBColor(md.outlineVariant),
-    shadow: argbToRGBColor(md.shadow),
-    scrim: argbToRGBColor(md.scrim),
+    primary: containerEtc(md.primaryPalette),
+    secondary: containerEtc(md.secondaryPalette),
+    tertiary: containerEtc(md.tertiaryPalette),
+    error: containerEtc(md.errorPalette),
 
     wallpaper: prevTheme?.wallpaper,
     radius: prevTheme?.radius ?? "0.5rem",
@@ -208,23 +218,15 @@ function mdToTheme(md: Scheme, prevTheme?: Theme): Theme {
   };
 }
 
-const colorCategories = [
-  ["background", "backgroundText"],
-  ["surface", "surfaceText", "surfaceVariant", "surfaceVariantText"],
-  ["primary", "primaryText", "primaryContainer", "primaryContainerText"],
-  ["secondary", "secondaryText", "secondaryContainer", "secondaryContainerText"],
-  ["tertiary", "tertiaryText", "tertiaryContainer", "tertiaryContainerText"],
-  ["error", "errorText", "errorContainer", "errorContainerText"],
-  ["inverseSurface", "inverseOnSurface", "inversePrimary"],
-  ["outline", "outlineVariant"],
-  ["shadow", "scrim"],
-] as const;
-
 const defaultMdColor = "#3f51b5";
 
 const styles = {
-  "material-you-light": mdToTheme(Scheme.light(argbFromHex(defaultMdColor))),
-  "material-you-dark": mdToTheme(Scheme.dark(argbFromHex(defaultMdColor))),
+  "material-you-light": mdToTheme(
+    new SchemeContent(Hct.fromInt(argbFromHex(defaultMdColor)), false, 0)
+  ),
+  "material-you-dark": mdToTheme(
+    new SchemeContent(Hct.fromInt(argbFromHex(defaultMdColor)), true, 0)
+  ),
   advanced: undefined,
 } as const satisfies Record<string, Theme | undefined>;
 
@@ -232,56 +234,42 @@ type Styles = keyof typeof styles;
 
 export default function Theming() {
   const [style, setStyle] = useState<Styles>("material-you-light");
-  const [mdSourceColor, setMdSourceColor] = useState(hexToRGBColor(defaultMdColor));
+  const [mdSourceColor, setMdSourceColor] = useState(
+    hexToRGBColor(defaultMdColor)
+  );
   const [theme, setTheme] = useState<Theme>(styles["material-you-light"]);
 
   function applyTheme(newTheme?: Theme) {
     const currentTheme = newTheme ?? theme;
-    addColorStyle("--background", currentTheme.background);
-    addColorStyle("--background-text", currentTheme.backgroundText);
 
-    addColorStyle("--surface", currentTheme.surface);
-    addColorStyle("--surface-text", currentTheme.surfaceText);
-    addColorStyle("--surface-variant", currentTheme.surfaceVariant);
-    addColorStyle("--surface-variant-text", currentTheme.surfaceVariantText);
+    function addFullStyle(name: string, comp: AComponent) {
+      addColorStyle(`--${name}`, comp.bg);
+      addColorStyle(`--${name}-text`, comp.text);
 
-    addColorStyle("--primary", currentTheme.primary);
-    addColorStyle("--primary-text", currentTheme.primaryText);
-    addColorStyle("--primary-container", currentTheme.primaryContainer);
-    addColorStyle(
-      "--primary-container-text",
-      currentTheme.primaryContainerText
-    );
+      if ("hover" in comp && "active" in comp) {
+        addColorStyle(`--${name}-hover`, comp.hover.bg);
+        addColorStyle(`--${name}-hover-text`, comp.hover.text);
+        addColorStyle(`--${name}-active`, comp.active.bg);
+        addColorStyle(`--${name}-active-text`, comp.active.text);
+      }
 
-    addColorStyle("--secondary", currentTheme.secondary);
-    addColorStyle("--secondary-text", currentTheme.secondaryText);
-    addColorStyle("--secondary-container", currentTheme.secondaryContainer);
-    addColorStyle(
-      "--secondary-container-text",
-      currentTheme.secondaryContainerText
-    );
+      // TODO: Add blur and radius
+    }
 
-    addColorStyle("--tertiary", currentTheme.tertiary);
-    addColorStyle("--tertiary-text", currentTheme.tertiaryText);
-    addColorStyle("--tertiary-container", currentTheme.tertiaryContainer);
-    addColorStyle(
-      "--tertiary-container-text",
-      currentTheme.tertiaryContainerText
-    );
+    for (const [name, entry] of themeComponentEntries) {
+      const currentEntry = currentTheme[name];
+      addFullStyle(name, currentEntry);
 
-    addColorStyle("--error", currentTheme.error);
-    addColorStyle("--error-text", currentTheme.errorText);
-    addColorStyle("--error-container", currentTheme.errorContainer);
-    addColorStyle("--error-container-text", currentTheme.errorContainerText);
-
-    addColorStyle("--inverse-surface", currentTheme.inverseSurface);
-    addColorStyle("--inverse-surface-text", currentTheme.inverseOnSurface);
-    addColorStyle("--inverse-primary", currentTheme.inversePrimary);
-    
-    addColorStyle("--outline", currentTheme.outline);
-    addColorStyle("--outline-variant", currentTheme.outlineVariant);
-    addColorStyle("--shadow", currentTheme.shadow);
-    addColorStyle("--scrim", currentTheme.scrim);
+      if (entry.length > 1) {
+        const subcomponents = entry.slice(1) as SliceFirst<typeof entry>;
+        for (const subcomponent of subcomponents) {
+          const currentSubcomponent = currentEntry[
+            subcomponent as keyof typeof currentEntry
+          ] as unknown as AComponent; // TypeScript is a bit confused here
+          addFullStyle(`${name}-${subcomponent}`, currentSubcomponent);
+        }
+      }
+    }
 
     if (currentTheme.wallpaper) {
       addStyle("--wallpaper", `url(${currentTheme.wallpaper.url})`);
@@ -298,11 +286,11 @@ export default function Theming() {
   }
 
   function applyMarkdownTheme() {
-    const sourceColor = rgbColorToArgb(mdSourceColor);
-    const mdTheme = themeFromSourceColor(sourceColor);
-
-    const scheme =
-      style === "material-you-dark" ? mdTheme.schemes.dark : mdTheme.schemes.light;
+    const scheme = new SchemeContent(
+      rgbColorToHct(mdSourceColor),
+      style === "material-you-dark",
+      0
+    );
 
     const newTheme = mdToTheme(scheme, theme);
 
@@ -321,6 +309,84 @@ export default function Theming() {
       applyMarkdownTheme();
     }
   }, [mdSourceColor, style]);
+
+  function AdvancedComponent({
+    name,
+    component,
+  }: {
+    name: string;
+    component: AComponent;
+  }) {
+    return (
+      <div className="preset-surface p-2 rounded-lg flex flex-row flex-wrap gap-4">
+        <details className="w-full">
+          <summary>{capitalCase(name)}</summary>
+
+          <div className="flex flex-col gap-4 py-4">
+            <div className="flex flex-row items-center gap-4">
+              <span>Background</span>
+              <ColorPicker
+                color={component.bg}
+                onChange={(color) =>
+                  applyTheme({
+                    ...theme,
+                    [name]: {
+                      ...component,
+                      bg: color.rgb,
+                    },
+                  })
+                }
+              />
+            </div>
+            <div className="flex flex-row items-center gap-4">
+              <span>Text</span>
+              <ColorPicker
+                color={component.text}
+                onChange={(color) =>
+                  applyTheme({
+                    ...theme,
+                    [name]: {
+                      ...component,
+                      text: color.rgb,
+                    },
+                  })
+                }
+              />
+            </div>
+            {(() => {
+              const keys = Object.keys(component).filter(
+                (key) =>
+                  key !== "bg" &&
+                  key !== "text" &&
+                  key !== "blur" &&
+                  key !== "radius"
+              ) as Exclude<
+                keyof AComponent,
+                "bg" | "text" | "blur" | "radius"
+              >[];
+              if (keys.length === 0) {
+                return null;
+              }
+              return (
+                <div className="flex flex-col gap-4">
+                  {keys.map((key) => {
+                    const subcomponent = component[key];
+                    return (
+                      <AdvancedComponent
+                        key={key}
+                        name={`${name}-${key}`}
+                        component={subcomponent}
+                      />
+                    );
+                  })}
+                </div>
+              );
+            })()}
+          </div>
+        </details>
+      </div>
+    );
+  }
 
   return (
     <div className="preset-background w-fit mx-auto rounded-lg p-8">
@@ -360,20 +426,11 @@ export default function Theming() {
         )}
         {style === "advanced" && (
           <div className="flex flex-col gap-4">
-            {colorCategories.map((colors) => (
-              <div key={colors[0]} className="preset-surface p-2 rounded-lg flex flex-row flex-wrap gap-4">
-                {colors.map((colorName) => (
-                  <label key={colorName} className="flex flex-row gap-2 items-center">
-                    {capitalCase(colorName)}:
-                    <ColorPicker
-                      color={theme[colorName]}
-                      onChange={(color) =>
-                        applyTheme({ ...theme, [colorName]: color.rgb })
-                      }
-                    />
-                  </label>
-                ))}
-              </div>
+            {themeComponentEntries.map(([name]) => (
+              <AdvancedComponent
+                name={name}
+                component={theme[name] as AComponent}
+              />
             ))}
             <div className="preset-surface p-2 rounded-lg flex flex-row flex-wrap gap-4">
               <label className="flex flex-row gap-2 items-center">
@@ -390,7 +447,10 @@ export default function Theming() {
                       const url = URL.createObjectURL(file);
                       const reader = new FileReader();
                       reader.onload = () => {
-                        applyTheme({ ...theme, wallpaper: { base64: reader.result as string, url } });
+                        applyTheme({
+                          ...theme,
+                          wallpaper: { base64: reader.result as string, url },
+                        });
                       };
                       reader.readAsDataURL(file);
                     }

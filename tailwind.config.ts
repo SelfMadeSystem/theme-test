@@ -1,34 +1,57 @@
-import type { Config } from 'tailwindcss';
-import plugin from 'tailwindcss/plugin';
-import animate from 'tailwindcss-animate';
+import type { Config } from "tailwindcss";
+import plugin from "tailwindcss/plugin";
+import animate from "tailwindcss-animate";
+import { themeComponentEntries } from "./src/theme";
+import type { ComponentEntry } from "./src/theme";
 
-function color(name: string, type = "bg") {
+function color(name: string, type: "text" | "bg" = "bg") {
   return `rgba(var(--${name}), calc(var(--tw-${type}-opacity, 1) * var(--${type}-alpha, 1) * var(--${name}-alpha, 1)))`;
 }
 
-function colorComponent(name: string, simple = false) {
-  return {
-    DEFAULT: color(name),
+type ColorComponent =
+  | {
+      [key: string]: ColorObject;
+    }
+  | ColorObject;
+
+type ColorObject = {
+  DEFAULT: string;
+  text: string;
+  hover?: string; // interactive
+  active?: string; // interactive
+};
+
+function colorObject(name: string, interactive: boolean): ColorObject {
+  const obj: ColorObject = {
+    DEFAULT: color(`${name}`),
     text: color(`${name}-text`, "text"),
-    ...(!simple && {
-      container: {
-        DEFAULT: color(`${name}-container`),
-        text: color(`${name}-container-text`, "text"),
-      },
-    }),
   };
+
+  if (interactive) {
+    obj.hover = color(`${name}-hover`);
+    obj.active = color(`${name}-active`);
+  }
+
+  return obj;
 }
 
-const colors = [
-  ["background", true],
-  ["surface", true],
-  ["surface-variant", true],
-  ["primary"],
-  ["secondary"],
-  ["tertiary"],
-  ["error"],
-  ["inverse-surface", true],
-] as const;
+function colorComponent(name: string, entry: ComponentEntry) {
+  const interactive = entry[0];
+
+  const result: ColorComponent = colorObject(name, interactive);
+
+  if (entry.length > 1) {
+    const subcomponents = entry.slice(1) as string[];
+    for (const subcomponent of subcomponents) {
+      result[subcomponent] = colorObject(
+        `${name}-${subcomponent}`,
+        interactive
+      );
+    }
+  }
+
+  return result;
+}
 
 export default {
   darkMode: ["class"],
@@ -41,16 +64,12 @@ export default {
   prefix: "",
   theme: {
     extend: {
-      colors: {
-        ...Object.fromEntries(
-          colors.map((color) => [color[0], colorComponent(color[0], color[1])])
-        ),
-        "inverse-primary": color("inverse-primary"),
-        outline: color("outline"),
-        "outline-variant": color("outline-variant"),
-        shadow: color("shadow"),
-        scrim: color("scrim"),
-      },
+      colors: Object.fromEntries(
+        themeComponentEntries.map(([name, entry]) => [
+          name,
+          colorComponent(name, entry),
+        ])
+      ),
       borderRadius: {
         lg: "var(--radius)",
         md: "calc(var(--radius) - 2px)",
@@ -77,22 +96,43 @@ export default {
   },
   plugins: [
     animate,
-    plugin(function({ addUtilities, theme }) {
+    plugin(function ({ addUtilities, theme }) {
       const newUtilities = {};
-      colors.forEach((color) => {
-        const colorName = color[0];
-        newUtilities[`.preset-${colorName}`] = {
-          backgroundColor: theme(`colors.${colorName}.DEFAULT`),
-          color: theme(`colors.${colorName}.text`),
-          backdropFilter: `blur(calc(var(--${colorName}-blur, 0px) + var(--bg-blur, 0px)))`,
-        };
 
-        if (!color[1]) {
-          newUtilities[`.preset-${colorName}-container`] = {
-            backgroundColor: theme(`colors.${colorName}.container.DEFAULT`),
-            color: theme(`colors.${colorName}.container.text`),
-            backdropFilter: `blur(calc(var(--${colorName}-container-blur, 0px) + var(--bg-blur, 0px)))`,
+      function addUtility(name: string, interactive: boolean) {
+        const dotName = name.replace(/-/g, ".");
+        newUtilities[`.preset-${name}`] = {
+          backgroundColor: theme(`colors.${dotName}.DEFAULT`),
+          color: theme(`colors.${dotName}.text`),
+          backdropFilter: `blur(calc(var(--${name}-blur, 0px) + var(--bg-blur, 0px)))`,
+        };
+        // TODO: Add radius
+
+        if (interactive) {
+          newUtilities[`.preset-${name}-interactive`] = {
+            "&:hover": {
+              backgroundColor: theme(`colors.${dotName}.hover`),
+              color: theme(`colors.${dotName}.hover.text`),
+              backdropFilter: `blur(calc(var(--${name}-hover-blur, var(--${name}-blur, 0px)) + var(--bg-blur, 0px)))`,
+            },
+            "&:active": {
+              backgroundColor: theme(`colors.${dotName}.active`),
+              color: theme(`colors.${dotName}.active.text`),
+              backdropFilter: `blur(calc(var(--${name}-active-blur, var(--${name}-blur, 0px)) + var(--bg-blur, 0px)))`,
+            },
           };
+        }
+      }
+
+      themeComponentEntries.forEach(([name, entry]) => {
+        const interactive = entry[0];
+        addUtility(name, interactive);
+
+        if (entry.length > 1) {
+          const subcomponents = entry.slice(1) as string[];
+          for (const subcomponent of subcomponents) {
+            addUtility(`${name}-${subcomponent}`, interactive);
+          }
         }
       });
       addUtilities(newUtilities);
