@@ -23,9 +23,6 @@ type AIComponent = InteractiveComponent<RGBColor, string>;
 type AComponent = ASComponent | AIComponent;
 
 function addStyle(name: string, value: string) {
-  if (name === "--wallpaper") {
-    console.log("hi", value);
-  }
   document.documentElement.style.setProperty(name, value);
 }
 
@@ -161,24 +158,24 @@ function mdToTheme(md: DynamicScheme, prevTheme?: Theme): Theme {
     return {
       bg: tone(palette, 80),
       text: tone(palette, 20),
-      active: {
-        bg: tone(palette, 99),
+      hover: {
+        bg: tone(palette, 75),
         text: tone(palette, 20),
       },
-      hover: {
-        bg: tone(palette, 90),
+      active: {
+        bg: tone(palette, 70),
         text: tone(palette, 20),
       },
 
       container: {
         bg: tone(palette, 30),
         text: tone(palette, 90),
-        active: {
-          bg: tone(palette, 20),
-          text: tone(palette, 90),
-        },
         hover: {
           bg: tone(palette, 35),
+          text: tone(palette, 90),
+        },
+        active: {
+          bg: tone(palette, 20),
           text: tone(palette, 90),
         },
       },
@@ -310,6 +307,8 @@ export default function Theming() {
     }
   }, [mdSourceColor, style]);
 
+  // FIXME: All AdvancedComponent instances get re-rendered when the theme is
+  // updated.
   function AdvancedComponent({
     name,
     component,
@@ -398,7 +397,7 @@ export default function Theming() {
         <label className="flex flex-row gap-2 items-center">
           Style:
           <select
-            className="preset-primary-container"
+            className="preset-primary-container preset-primary-container-interactive"
             value={style}
             onChange={(e) => {
               const style = e.target.value as Styles;
@@ -428,6 +427,7 @@ export default function Theming() {
           <div className="flex flex-col gap-4">
             {themeComponentEntries.map(([name]) => (
               <AdvancedComponent
+                key={name}
                 name={name}
                 component={theme[name] as AComponent}
               />
@@ -436,7 +436,7 @@ export default function Theming() {
               <label className="flex flex-row gap-2 items-center">
                 Wallpaper:
                 <input
-                  className="preset-primary-container p-2 rounded-md"
+                  className="preset-primary-container preset-primary-container-interactive p-2 rounded-md"
                   type="file"
                   onChange={(e) => {
                     const file = e.target.files?.[0];
@@ -458,7 +458,7 @@ export default function Theming() {
                 />
               </label>
               <button
-                className="preset-primary p-2 rounded-md"
+                className="preset-primary preset-primary-interactive p-2 rounded-md"
                 onClick={() => {
                   if (theme.wallpaper) {
                     URL.revokeObjectURL(theme.wallpaper.url);
@@ -473,7 +473,7 @@ export default function Theming() {
               <label className="flex flex-row gap-2 items-center">
                 Radius:
                 <input
-                  className="preset-primary-container p-2 rounded-md"
+                  className="preset-primary-container preset-primary-container-interactive p-2 rounded-md"
                   type="text"
                   value={theme.radius}
                   onChange={(e) =>
@@ -486,7 +486,7 @@ export default function Theming() {
               <label className="flex flex-row gap-2 items-center">
                 Global alpha:
                 <input
-                  className="preset-primary-container p-2 rounded-md"
+                  className="preset-primary-container preset-primary-container-interactive p-2 rounded-md"
                   type="number"
                   min={0}
                   max={1}
@@ -500,7 +500,7 @@ export default function Theming() {
               <label className="flex flex-row gap-2 items-center">
                 Global blur:
                 <input
-                  className="preset-primary-container p-2 rounded-md"
+                  className="preset-primary-container preset-primary-container-interactive p-2 rounded-md"
                   type="number"
                   value={theme.globalBlur}
                   onChange={(e) =>
@@ -513,7 +513,7 @@ export default function Theming() {
         )}
         <div className="preset-surface p-2 rounded-lg flex flex-row flex-wrap gap-4">
           <button
-            className="preset-primary p-2 rounded-md"
+            className="preset-primary preset-primary-interactive p-2 rounded-md"
             onClick={() => {
               navigator.clipboard.writeText(
                 JSON.stringify(
@@ -530,7 +530,7 @@ export default function Theming() {
             Copy theme
           </button>
           <button
-            className="preset-primary p-2 rounded-md"
+            className="preset-primary preset-primary-interactive p-2 rounded-md"
             onClick={() => {
               navigator.clipboard.readText().then((text) => {
                 if (theme.wallpaper) {

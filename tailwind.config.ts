@@ -4,8 +4,8 @@ import animate from "tailwindcss-animate";
 import { themeComponentEntries } from "./src/theme";
 import type { ComponentEntry } from "./src/theme";
 
-function color(name: string, type: "text" | "bg" = "bg") {
-  return `rgba(var(--${name}), calc(var(--tw-${type}-opacity, 1) * var(--${type}-alpha, 1) * var(--${name}-alpha, 1)))`;
+function color(name: string, extraAlpha: string, type: "text" | "bg" = "bg") {
+  return `rgba(var(--${name}), calc(${extraAlpha}var(--tw-${type}-opacity, 1) * var(--${type}-alpha, 1) * var(--${name}-alpha, 1)))`;
 }
 
 type ColorComponent =
@@ -17,19 +17,41 @@ type ColorComponent =
 type ColorObject = {
   DEFAULT: string;
   text: string;
-  hover?: string; // interactive
-  active?: string; // interactive
+  hover?: { DEFAULT: string; text: string }; // interactive
+  active?: { DEFAULT: string; text: string }; // interactive
 };
 
-function colorObject(name: string, interactive: boolean): ColorObject {
+function colorObject(
+  name: string,
+  extraAlpha: string,
+  interactive: boolean
+): ColorObject {
   const obj: ColorObject = {
-    DEFAULT: color(`${name}`),
-    text: color(`${name}-text`, "text"),
+    DEFAULT: color(`${name}`, extraAlpha),
+    text: color(`${name}-text`, extraAlpha, "text"),
   };
 
   if (interactive) {
-    obj.hover = color(`${name}-hover`);
-    obj.active = color(`${name}-active`);
+    obj.hover = {
+      DEFAULT: color(
+        `${name}-hover`,
+        `var(--${name}-hover-alpha, 1) * ${extraAlpha}`
+      ),
+      text: color(
+        `${name}-hover-text`,
+        `var(--${name}-hover-text-alpha, 1) * ${extraAlpha}`
+      ),
+    };
+    obj.active = {
+      DEFAULT: color(
+        `${name}-active`,
+        `var(--${name}-active-alpha, 1) * ${extraAlpha}`
+      ),
+      text: color(
+        `${name}-active-text`,
+        `var(--${name}-active-text-alpha, 1) * ${extraAlpha}`
+      ),
+    };
   }
 
   return obj;
@@ -38,13 +60,15 @@ function colorObject(name: string, interactive: boolean): ColorObject {
 function colorComponent(name: string, entry: ComponentEntry) {
   const interactive = entry[0];
 
-  const result: ColorComponent = colorObject(name, interactive);
+  const result: ColorComponent = colorObject(name, "", interactive);
 
   if (entry.length > 1) {
     const subcomponents = entry.slice(1) as string[];
     for (const subcomponent of subcomponents) {
+      const subname = `${name}-${subcomponent}`;
       result[subcomponent] = colorObject(
-        `${name}-${subcomponent}`,
+        subname,
+        `var(--${subname}-alpha, 1) * `,
         interactive
       );
     }
