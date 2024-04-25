@@ -20,6 +20,7 @@ import {
   styles,
   applyTheme,
 } from "./GlobalTheme";
+import { UnitPicker } from "./UnitPicker";
 
 export default function Theming() {
   const [style, setStyle] = useState<Styles>("material-you-light");
@@ -217,24 +218,20 @@ export default function Theming() {
             <div className="preset-surface p-2 rounded-lg flex flex-row flex-wrap gap-4">
               <label className="flex flex-row gap-2 items-center">
                 Radius:
-                <input
-                  className="preset-primary-container preset-primary-container-interactive p-2 rounded-md"
-                  type="text"
-                  value={radius}
-                  onChange={(e) => {
-                    const val = e.target.value;
-                    setRadius(val);
-                    theme.radius = val;
-                    applyTheme();
-                  }}
-                />
               </label>
-            </div>
-            <div className="preset-surface p-2 rounded-lg flex flex-row flex-wrap gap-4">
+              <UnitPicker
+                value={radius}
+                onChange={(e) => {
+                  setRadius(e);
+                  theme.radius = e;
+                  applyTheme();
+                }}
+                className="preset-primary-container preset-primary-container-interactive"
+              />
               <label className="flex flex-row gap-2 items-center">
                 Global alpha:
                 <input
-                  className="preset-primary-container preset-primary-container-interactive p-2 rounded-md"
+                  className="preset-primary-container w-24 preset-primary-container-interactive p-2 rounded-md"
                   type="number"
                   min={0}
                   max={1}
@@ -251,9 +248,10 @@ export default function Theming() {
               <label className="flex flex-row gap-2 items-center">
                 Global blur:
                 <input
-                  className="preset-primary-container preset-primary-container-interactive p-2 rounded-md"
+                  className="preset-primary-container w-24 preset-primary-container-interactive p-2 rounded-md"
                   type="number"
                   value={globalBlur}
+                  min={0}
                   onChange={(e) => {
                     const val = +e.target.value;
                     setGlobalBlur(val);
@@ -265,7 +263,7 @@ export default function Theming() {
               <label className="flex flex-row gap-2 items-center">
                 Transition duration:
                 <input
-                  className="preset-primary-container preset-primary-container-interactive p-2 rounded-md"
+                  className="preset-primary-container w-24 preset-primary-container-interactive p-2 rounded-md"
                   type="number"
                   value={transitionDuration}
                   onChange={(e) => {
@@ -290,7 +288,6 @@ export default function Theming() {
                     wallpaper: theme.wallpaper?.base64,
                   },
                   null,
-                  2
                 )
               );
             }}

@@ -14,6 +14,7 @@ import {
   Theme as TwTheme,
 } from "./theme";
 import { argbToRGBColor, recursivelyApply } from "./utils";
+import { UnitValue } from "./UnitPicker";
 
 // this file is a mess
 
@@ -42,7 +43,7 @@ export type Theme = {
     base64: string;
     url: string;
   };
-  radius: string;
+  radius: UnitValue;
   globalAlpha: number;
   globalBlur: number;
   transitionDuration: number;
@@ -120,7 +121,7 @@ export function mdToTheme(md: DynamicScheme, prevTheme?: Theme): Theme {
     error: containerEtc(md.errorPalette),
 
     wallpaper: prevTheme?.wallpaper,
-    radius: prevTheme?.radius ?? "0.5rem",
+    radius: prevTheme?.radius ?? [0.5, "rem"],
     globalAlpha: prevTheme?.globalAlpha ?? 1,
     globalBlur: prevTheme?.globalBlur ?? 0,
     transitionDuration: prevTheme?.transitionDuration ?? 150,
@@ -181,7 +182,7 @@ export function applyTheme() {
   } else {
     addStyle("--wallpaper", "none");
   }
-  addStyle("--radius", theme.radius);
+  addStyle("--radius", theme.radius.join(""));
   addStyle("--bg-alpha", theme.globalAlpha.toString());
   addStyle("--bg-blur", `${theme.globalBlur}px`);
   addStyle("--transition-duration", `${theme.transitionDuration}ms`);
