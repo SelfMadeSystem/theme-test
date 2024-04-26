@@ -69,27 +69,27 @@ export function mdToTheme(md: DynamicScheme, prevTheme?: Theme): Theme {
 
   function containerEtc(palette: TonalPalette) {
     return {
-      bg: tone(palette, 80),
-      text: tone(palette, 20),
+      bg: tone(palette, 30),
+      text: tone(palette, 90),
       hover: {
-        bg: tone(palette, 75),
-        text: tone(palette, 20),
+        bg: tone(palette, 35),
+        text: tone(palette, 90),
       },
       active: {
-        bg: tone(palette, 70),
-        text: tone(palette, 20),
+        bg: tone(palette, 20),
+        text: tone(palette, 90),
       },
 
       container: {
-        bg: tone(palette, 30),
-        text: tone(palette, 90),
+        bg: tone(palette, 80),
+        text: tone(palette, 20),
         hover: {
-          bg: tone(palette, 35),
-          text: tone(palette, 90),
+          bg: tone(palette, 75),
+          text: tone(palette, 20),
         },
         active: {
-          bg: tone(palette, 20),
-          text: tone(palette, 90),
+          bg: tone(palette, 70),
+          text: tone(palette, 20),
         },
       },
     };
