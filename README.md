@@ -4,6 +4,8 @@ This is a test of making a hyper-customizable theme for the web.
 
 It uses a combination of CSS variables, JavaScript, and TailwindCSS to allow for a high degree of customization.
 
+This was made as a proof of concept for a project I'm working on, but I thought it was cool enough to share.
+
 ## Features
 
 - [x] Colors
