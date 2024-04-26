@@ -21,8 +21,9 @@ It uses a combination of CSS variables, JavaScript, and TailwindCSS to allow for
   - [x] Site-wide opacity
 - [x] Background blur
 - [x] Transitions
-- [ ] Shadows
 - [ ] Fonts
+  - [x] Font sizes
+- [ ] Shadows
 - [ ] Spacing
 
 ## Usage

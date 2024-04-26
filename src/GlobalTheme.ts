@@ -47,6 +47,7 @@ export type Theme = {
   globalAlpha: number;
   globalBlur: number;
   transitionDuration: number;
+  fontSize: number;
 } & TwTheme<RGBColor, string>;
 
 /**
@@ -125,6 +126,7 @@ export function mdToTheme(md: DynamicScheme, prevTheme?: Theme): Theme {
     globalAlpha: prevTheme?.globalAlpha ?? 1,
     globalBlur: prevTheme?.globalBlur ?? 0,
     transitionDuration: prevTheme?.transitionDuration ?? 150,
+    fontSize: prevTheme?.fontSize ?? 16,
   };
 }
 
@@ -186,6 +188,7 @@ export function applyTheme() {
   addStyle("--bg-alpha", theme.globalAlpha.toString());
   addStyle("--bg-blur", `${theme.globalBlur}px`);
   addStyle("--transition-duration", `${theme.transitionDuration}ms`);
+  addStyle("font-size", `${theme.fontSize}px`);
 }
 
 /**

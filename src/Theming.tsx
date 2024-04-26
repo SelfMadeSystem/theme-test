@@ -33,6 +33,7 @@ export default function Theming() {
   const [transitionDuration, setTransitionDuration] = useState(
     theme.transitionDuration
   );
+  const [fontSize, setFontSize] = useState(theme.fontSize);
 
   function applyMarkdownTheme() {
     const scheme = new SchemeContent(
@@ -245,6 +246,8 @@ export default function Theming() {
                   }}
                 />
               </label>
+            </div>
+            <div className="preset-surface p-2 rounded-lg flex flex-row flex-wrap gap-4">
               <label className="flex flex-row gap-2 items-center">
                 Global blur:
                 <input
@@ -275,6 +278,23 @@ export default function Theming() {
                 />
               </label>
             </div>
+            <div className="preset-surface p-2 rounded-lg flex flex-row flex-wrap gap-4">
+              <label className="flex flex-row gap-2 items-center">
+                Font size:
+                <input
+                  className="preset-primary-container w-24 preset-primary-container-interactive p-2 rounded-md"
+                  type="number"
+                  value={fontSize}
+                  min={0}
+                  onChange={(e) => {
+                    const val = +e.target.value;
+                    setFontSize(val);
+                    theme.fontSize = val;
+                    applyTheme();
+                  }}
+                />
+              </label>
+            </div>
           </div>
         )}
         <div className="preset-surface p-2 rounded-lg flex flex-row flex-wrap gap-4">
@@ -287,7 +307,7 @@ export default function Theming() {
                     ...theme,
                     wallpaper: theme.wallpaper?.base64,
                   },
-                  null,
+                  null
                 )
               );
             }}
